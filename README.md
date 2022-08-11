@@ -1,6 +1,9 @@
 # Torchdynamo test for Transforemrs
 
+> No Success for Pegasus yet.
+
 * [Enable torchdynamo with torch_tensorrt(fx path)](https://github.com/huggingface/transformers/pull/17765)
+* [Inference benchmarks of Torchdynamo + FX2TRT(now in Torch-TensorRT)](https://github.com/huggingface/transformers/pull/17724)
 * [TorchDynamo](https://github.com/pytorch/torchdynamo)
 
 ## Installation [REF](https://github.com/huggingface/transformers/pull/17765)
@@ -8,7 +11,7 @@
 1. create conda env
 
 ```bash
-conda create --name dyn python=3.8
+conda create --name dyn python=3.8 -y 
 conda activate dyn
 ```
 
@@ -17,31 +20,38 @@ conda activate dyn
 ```bash
 # install torch-nightly
 conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch-nightly
-
+# pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cu113 --upgrade
 # install functorch (and reinstall after `git pull` later if need to sync up)
+python -c "import torch; assert torch.__version__ > '1.12.0', 'Please install torch 1.13.0 or later'"
+
 git clone https://github.com/pytorch/functorch
 cd functorch
 rm -rf build
-pip install -e .[aot] -y
-
+pip install -e .[aot]
 cd ..
+
 git clone https://github.com/pytorch/torchdynamo
 cd torchdynamo
 pip install -r requirements.txt
 python setup.py develop
+python -c "import torchdynamo;"
+cd ..
 
 # install TensorRT
 pip install nvidia-pyindex 
-pip install nvidia-tensorrt==8.2.4.2
+pip install nvidia-tensorrt=="8.2.4.2"
+pip install torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases
 
 # install torch_tensorrt (fx path)
-cd ..
 git clone https://github.com/pytorch/TensorRT.git
 cd TensorRT/py
 python setup.py install --fx-only
-cd ..
+cd ../..
+python -c "import torch_tensorrt.fx"
+python -c "import torchdynamo; assert 'fx2trt' in torchdynamo.list_backends(), 'Some error in your installation missing optimizer'"
+python -c "from torchdynamo.optimizations import backends; x=backends.fx2trt_compiler"
 
-# clean
+# clean is not working other
 rm -rf TensorRT
 rm -rf functorch
 rm -rf torchdynamo
