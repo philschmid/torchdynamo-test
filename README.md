@@ -11,7 +11,7 @@
 1. create conda env
 
 ```bash
-conda create --name dyn python=3.8 -y 
+conda create --name dyn python=3.8 jupyter
 conda activate dyn
 ```
 
@@ -23,6 +23,11 @@ conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch-nightly
 # pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cu113 --upgrade
 # install functorch (and reinstall after `git pull` later if need to sync up)
 python -c "import torch; assert torch.__version__ > '1.12.0', 'Please install torch 1.13.0 or later'"
+
+# clean is not working other
+rm -rf TensorRT
+rm -rf functorch
+rm -rf torchdynamo
 
 git clone https://github.com/pytorch/functorch
 cd functorch
@@ -51,10 +56,7 @@ python -c "import torch_tensorrt.fx"
 python -c "import torchdynamo; assert 'fx2trt' in torchdynamo.list_backends(), 'Some error in your installation missing optimizer'"
 python -c "from torchdynamo.optimizations import backends; x=backends.fx2trt_compiler"
 
-# clean is not working other
-rm -rf TensorRT
-rm -rf functorch
-rm -rf torchdynamo
+
 ```
 
 3. install transformers
