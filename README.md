@@ -21,18 +21,23 @@ conda activate dyn
 # install torch-nightly
 conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch-nightly
 # pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cu113 --upgrade
-# install functorch (and reinstall after `git pull` later if need to sync up)
 python -c "import torch; assert torch.__version__ > '1.12.0', 'Please install torch 1.13.0 or later'"
+python -c "import torch; print(torch.__version__)"
 
 # clean is not working other
 rm -rf TensorRT
 rm -rf functorch
 rm -rf torchdynamo
 
+# install functorch (and reinstall after `git pull` later if need to sync up)
+pip install ninja
 git clone https://github.com/pytorch/functorch
 cd functorch
 rm -rf build
 pip install -e .[aot]
+# test if it works
+pytest test/test_vmap.py -v
+pytest test/test_eager_transforms.py -v
 cd ..
 
 git clone https://github.com/pytorch/torchdynamo
