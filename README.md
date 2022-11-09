@@ -6,68 +6,43 @@
 * [Inference benchmarks of Torchdynamo + FX2TRT(now in Torch-TensorRT)](https://github.com/huggingface/transformers/pull/17724)
 * [TorchDynamo](https://github.com/pytorch/torchdynamo)
 
-## Installation [REF](https://github.com/huggingface/transformers/pull/17765)
+> We have moved TorchDynamo to pytorch/pytorch
+
+
+## Installation [REF](https://github.com/pytorch/torchdynamo#requirements-and-setup)
 
 1. create conda env
 
 ```bash
-conda create --name dyn python=3.8 jupyter
+conda create --name dyn python=3.8
 conda activate dyn
 ```
 
 2. install dependencies 
 
+_GPU:_
+
+check which cuda version your local system has installed and make sure to install the corresponding pytorch package.
+
+
 ```bash
-# install torch-nightly
-conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch-nightly
-# pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cu113 --upgrade
-python -c "import torch; assert torch.__version__ > '1.12.0', 'Please install torch 1.13.0 or later'"
-python -c "import torch; print(torch.__version__)"
-
-# clean is not working other
-rm -rf TensorRT
-rm -rf functorch
-rm -rf torchdynamo
-
-# install functorch (and reinstall after `git pull` later if need to sync up)
-pip install ninja
-git clone https://github.com/pytorch/functorch
-cd functorch
-rm -rf build
-pip install -e .[aot]
-# test if it works
-pytest test/test_vmap.py -v
-pytest test/test_eager_transforms.py -v
-cd ..
-
-git clone https://github.com/pytorch/torchdynamo
-cd torchdynamo
-pip install -r requirements.txt
-python setup.py develop
-python -c "import torchdynamo;"
-cd ..
-
-# install TensorRT
-pip install nvidia-pyindex 
-pip install nvidia-tensorrt=="8.2.4.2"
-pip install torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases
-
-# install torch_tensorrt (fx path)
-git clone https://github.com/pytorch/TensorRT.git
-cd TensorRT/py
-python setup.py install --fx-only
-cd ../..
-python -c "import torch_tensorrt.fx"
-python -c "import torchdynamo; assert 'fx2trt' in torchdynamo.list_backends(), 'Some error in your installation missing optimizer'"
-python -c "from torchdynamo.optimizations import backends; x=backends.fx2trt_compiler"
-
-
+pip install numpy --pre torch[dynamo] --force-reinstall --extra-index-url https://download.pytorch.org/whl/nightly/cu116
 ```
 
-3. install transformers
+_CPU_
 
 ```bash
-pip install transformers[sentencepiece] jupyter
+pip install --pre torch --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+pip install transformers jupyter datasets accelerate
+```
+
+3. test it 
+
+```python
+import torch._dynamo as torchdynamo
+
+print(torchdynamo.list_backends())
+# ['ansor', 'aot_autograd', 'aot_cudagraphs', 'aot_eager', 'aot_inductor_debug', 'aot_print', 'aot_ts', 'aot_ts_nvfuser', 'aot_ts_nvfuser_nodecomps', 'cudagraphs', 'cudagraphs_ts', 'cudagraphs_ts_ofi', 'eager', 'fx2trt', 'inductor', 'ipex', 'nnc', 'nnc_ofi', 'nvprims_aten', 'nvprims_nvfuser', 'ofi', 'onednn', 'onnx2tensorrt', 'onnx2tensorrt_alt', 'onnx2tf', 'onnxrt', 'onnxrt_cpu', 'onnxrt_cpu_numpy', 'onnxrt_cuda', 'static_runtime', 'taso', 'tensorrt', 'torch2trt', 'torchxla_trace_once', 'torchxla_trivial', 'ts', 'ts_nvfuser', 'ts_nvfuser_ofi', 'tvm', 'tvm_meta_schedule']
 ```
 
 4. Checkout example
@@ -78,13 +53,39 @@ pip install transformers[sentencepiece] jupyter
 ## Torchdynamo
 
 TorchDynamo is a new tracer that uses Python’s frame evaluation API to automatically create FX traces from existing PyTorch programs. After capturing the FX graph, different backends can be deployed to lower the graph to an optimized engine. One solution is using the [TensorRT](https://developer.nvidia.com/tensorrt) or NVFuser as backend. You can choose one option below for performance boost.
-```
-TrainingArguments(torchdynamo="eager")      #enable eager model GPU. No performance boost
-TrainingArguments(torchdynamo="nvfuser")    #enable nvfuser
-TrainingArguments(torchdynamo="fx2trt")     #enable tensorRT fp32
-TrainingArguments(torchdynamo="fx2trt-f16") #enable tensorRT fp16
-```
-This feature involves 3 different libraries. To install them, please follow the instructions below:  
-- [Torchdynamo installation](https://github.com/pytorch/torchdynamo#requirements-and-setup)  
-- [Functorch installation](https://github.com/pytorch/functorch#install)  
-- [Torch-TensorRT(FX) installation](https://github.com/pytorch/TensorRT/blob/master/docsrc/tutorials/getting_started_with_fx_path.rst#installation)
+
+
+
+
+{
+    "name": "Anaconda (Python 3)",
+    "build": { 
+        "context": "..",
+        "dockerfile": "Dockerfile",
+        "args": {
+            "NODE_VERSION": "none"
+        }
+    },
+
+    "settings": { 
+        "python.defaultInterpreterPath": "/opt/conda/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.autopep8Path": "/opt/conda/bin/autopep8",
+        "python.formatting.yapfPath": "/opt/conda/bin/yapf",
+        "python.linting.flake8Path": "/opt/conda/bin/flake8",
+        "python.linting.pycodestylePath": "/opt/conda/bin/pycodestyle",
+        "python.linting.pydocstylePath": "/opt/conda/bin/pydocstyle",
+        "python.linting.pylintPath": "/opt/conda/bin/pylint"
+    },
+
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+    ],
+    
+    "runArgs": ["--gpus","all"
+    ],
+
+    "remoteUser": "vscode",
+}
