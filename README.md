@@ -5,6 +5,7 @@
 * [Enable torchdynamo with torch_tensorrt(fx path)](https://github.com/huggingface/transformers/pull/17765)
 * [Inference benchmarks of Torchdynamo + FX2TRT(now in Torch-TensorRT)](https://github.com/huggingface/transformers/pull/17724)
 * [TorchDynamo](https://github.com/pytorch/torchdynamo)
+* [Sylvains tests](https://github.com/sgugger/torchdynamo-tests)
 
 > We have moved TorchDynamo to pytorch/pytorch
 
@@ -54,38 +55,3 @@ print(torchdynamo.list_backends())
 
 TorchDynamo is a new tracer that uses Python’s frame evaluation API to automatically create FX traces from existing PyTorch programs. After capturing the FX graph, different backends can be deployed to lower the graph to an optimized engine. One solution is using the [TensorRT](https://developer.nvidia.com/tensorrt) or NVFuser as backend. You can choose one option below for performance boost.
 
-
-
-
-{
-    "name": "Anaconda (Python 3)",
-    "build": { 
-        "context": "..",
-        "dockerfile": "Dockerfile",
-        "args": {
-            "NODE_VERSION": "none"
-        }
-    },
-
-    "settings": { 
-        "python.defaultInterpreterPath": "/opt/conda/bin/python",
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.formatting.autopep8Path": "/opt/conda/bin/autopep8",
-        "python.formatting.yapfPath": "/opt/conda/bin/yapf",
-        "python.linting.flake8Path": "/opt/conda/bin/flake8",
-        "python.linting.pycodestylePath": "/opt/conda/bin/pycodestyle",
-        "python.linting.pydocstylePath": "/opt/conda/bin/pydocstyle",
-        "python.linting.pylintPath": "/opt/conda/bin/pylint"
-    },
-
-    "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance"
-    ],
-    
-    "runArgs": ["--gpus","all"
-    ],
-
-    "remoteUser": "vscode",
-}
